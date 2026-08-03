@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<title>Quiz Drones AESA — Eloy</title>
+<meta name="theme-color" content="#0b1219">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Quiz Drones">
+<style>
+  :root{
+    --bg1:#0b1219; --bg2:#101d2b; --card:#14202e; --card2:#1b2c3e;
+    --accent:#3aa0ff; --accent2:#2b7fd6; --ok:#34d399; --wrong:#f87171;
+    --gold:#f5c451; --text:#e8eef5; --muted:#93a4b7; --line:rgba(255,255,255,.08);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--text);
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    background-attachment:fixed;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    overflow-x:hidden;
+  }
+  #app{max-width:560px;margin:0 auto;padding:16px 16px 40px;min-height:100%}
+  h1{font-size:20px;margin:0;letter-spacing:.3px}
+  .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .row{display:flex;gap:10px}
+  .between{justify-content:space-between;align-items:center}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px}
+  .card+.card{margin-top:12px}
+  .muted{color:var(--muted)}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:12px;font-weight:600}
+  .btn{border:0;border-radius:14px;padding:15px 16px;font-size:15px;font-weight:700;color:#fff;background:var(--accent);width:100%;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;transition:transform .08s ease, filter .15s}
+  .btn:active{transform:scale(.98)}
+  .btn.sec{background:var(--card2);border:1px solid var(--line)}
+  .btn .ico{font-size:22px;width:26px;text-align:center}
+  .btn .t{flex:1}
+  .btn .t small{display:block;font-weight:500;font-size:12px;opacity:.8;margin-top:2px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+  .stat b{font-size:22px;display:block}
+  .stat span{font-size:11px;color:var(--muted)}
+  .chip{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer}
+  .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .bar{height:8px;border-radius:6px;background:rgba(255,255,255,.09);overflow:hidden}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#66c2ff);width:0;transition:width .5s}
+  .q{font-size:17px;font-weight:600;line-height:1.4;margin:6px 0 14px}
+  .opt{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:14px;margin-bottom:10px;font-size:15px;cursor:pointer;display:flex;gap:11px;align-items:flex-start;transition:.15s}
+  .opt .k{font-weight:800;color:var(--accent);flex:0 0 18px}
+  .opt.correct{background:rgba(52,211,153,.15);border-color:var(--ok)}
+  .opt.bad{background:rgba(248,113,113,.13);border-color:var(--wrong)}
+  .opt.correct .k{color:var(--ok)} .opt.bad .k{color:var(--wrong)}
+  .opt.dis{pointer-events:none;opacity:.85}
+  .expl{background:rgba(58,160,255,.08);border:1px solid rgba(58,160,255,.25);border-radius:12px;padding:12px;font-size:14px;line-height:1.45;margin-top:4px}
+  .expl b{color:var(--accent)}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px}
+  .timer.warn{color:var(--wrong)}
+  .prog{font-size:12px;color:var(--muted)}
+  .back{background:none;border:0;color:var(--muted);font-size:14px;cursor:pointer;padding:6px 0}
+  .big{font-size:44px;font-weight:800;margin:4px 0}
+  .center{text-align:center}
+  .badge{display:flex;gap:10px;align-items:center;padding:10px;border-radius:12px;background:var(--card2);border:1px solid var(--line);margin-bottom:8px}
+  .badge.locked{opacity:.4;filter:grayscale(1)}
+  .badge .e{font-size:24px}
+  .badge .n{font-weight:700;font-size:14px}
+  .badge .d{font-size:12px;color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--card2);border:1px solid var(--accent);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:14px;opacity:0;transition:.35s;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .foot{margin-top:18px;text-align:center;font-size:11px;color:var(--muted)}
+  .lvlbar{margin-top:10px}
+  a{color:var(--accent)}
+  .installhint{font-size:12px;color:var(--muted);background:var(--card2);border:1px dashed var(--line);border-radius:12px;padding:10px 12px;margin-top:12px;line-height:1.4}
+  @keyframes pop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+  .pop{animation:pop .25s ease}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toast" id="toast"></div>
+<script src="preguntas.js"></script>
+<script>
+/* ================= Estado / almacenamiento ================= */
+const CATS = window.CATS || {};
+const Q = window.Q || [];
+const ENTRAN = ['REG','HUM','PROC','UAS','AIRE']; // 5 materias del examen (A2 → excluye MET, PREST, TIERRA)
+const LEVEL_NAMES = {A1A3:'A1/A3', A2:'A2', STS:'STS', RTC:'Radiofonista'};
+const LETTERS = ['A','B','C','D'];
+const KEY = 'quizDronesV1';
+const today = () => Math.floor(Date.now()/86400000);
+const INTERVALS = [0,1,2,4,7,15]; // días por caja Leitner
+
+function hash(s){let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}return 'q'+(h>>>0);}
+Q.forEach(q=>{ if(!q.id) q.id = hash(q.q); });
+
+const DEF = {xp:0, streak:{count:0,last:-1}, boxes:{}, cat:{}, badges:[], sims:[], answered:0, ok:0, days:[]};
+let S = load();
+function load(){ try{return Object.assign({}, DEF, JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){return {...DEF};} }
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+
+/* Nivel / rango por XP */
+const RANKS = ['Novato','Aprendiz','Piloto en prácticas','Piloto STS','Piloto avanzado','As del dron','Instructor'];
+function levelInfo(){
+  const xp=S.xp||0; const per=250; const lvl=Math.floor(xp/per)+1;
+  const rank=RANKS[Math.min(lvl-1,RANKS.length-1)];
+  const inLvl=xp%per; return {lvl,rank,inLvl,per,pct:Math.round(inLvl/per*100)};
+}
+function addXP(n){ S.xp=(S.xp||0)+n; }
+function markDay(){
+  const t=today();
+  if(S.streak.last===t) return;
+  S.streak.count = (S.streak.last===t-1)? S.streak.count+1 : 1;
+  S.streak.last=t;
+  if(!S.days.includes(t)) S.days.push(t);
+}
+
+/* Registrar respuesta: XP + estadística por materia + Leitner */
+function record(q, correct){
+  S.answered++; if(correct) S.ok++;
+  const c=q.c; S.cat[c]=S.cat[c]||{ok:0,total:0}; S.cat[c].total++; if(correct)S.cat[c].ok++;
+  const b=S.boxes[q.id]||{box:0,due:today(),seen:0};
+  b.seen++;
+  if(correct){ b.box=Math.min(b.box+1,5); b.due=today()+INTERVALS[b.box]; addXP(10+ (S.streak.count>1?2:0)); }
+  else { b.box=0; b.due=today(); addXP(2); }
+  S.boxes[q.id]=b;
+  markDay();
+  checkBadges();
+  save();
+}
+
+/* ================= Insignias ================= */
+const BADGES=[
+  {id:'first', e:'🎯', n:'Primer disparo', d:'Responde tu primera pregunta', on:()=>S.answered>=1},
+  {id:'q50', e:'📚', n:'Cincuentena', d:'50 preguntas respondidas', on:()=>S.answered>=50},
+  {id:'q200', e:'🧠', n:'Machaca-banco', d:'200 preguntas respondidas', on:()=>S.answered>=200},
+  {id:'streak3', e:'🔥', n:'Racha de 3', d:'3 días seguidos estudiando', on:()=>S.streak.count>=3},
+  {id:'streak7', e:'⚡', n:'Semana perfecta', d:'7 días seguidos', on:()=>S.streak.count>=7},
+  {id:'simpass', e:'✅', n:'Aprobado', d:'Aprueba un simulacro (≥75%)', on:()=>S.sims.some(s=>s.passed)},
+  {id:'sim90', e:'🏆', n:'Sobresaliente', d:'Simulacro ≥90%', on:()=>S.sims.some(s=>s.total&&s.score/s.total>=0.9)},
+  {id:'mastery', e:'💎', n:'Materia dominada', d:'Una materia al ≥90% (mín. 8)', on:()=>Object.values(S.cat).some(c=>c.total>=8&&c.ok/c.total>=0.9)},
+  {id:'nofail', e:'🛡️', n:'Sin fallos', d:'Repaso de fallos a cero', on:()=>S.answered>=20 && duePool().length===0 && Object.keys(S.boxes).length>0},
+];
+function checkBadges(){
+  BADGES.forEach(b=>{ if(!S.badges.includes(b.id) && b.on()){ S.badges.push(b.id); toast('🎖️ Insignia: '+b.n); } });
+}
+
+/* ================= Selección de preguntas ================= */
+let LEVELS = ['A1A3','A2','STS','RTC']; // filtro activo (persistente en sesión)
+function pool(levels){ return Q.filter(q=>levels.includes(q.lv)); }
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function prep(q){ const ord=shuffle(q.o.map((_,i)=>i)); return {ref:q, q:q.q, c:q.c, lv:q.lv, id:q.id, o:ord.map(i=>q.o[i]), a:ord.indexOf(q.a), e:q.e}; }
+function duePool(){ const t=today(); return Q.filter(q=>{const b=S.boxes[q.id]; return b && b.due<=t && b.box<5; }); }
+
+/* ================= Motor de sesión ================= */
+let sess=null, tick=null;
+function startSession(opts){
+  // opts: {items:[Q...], timed:bool, seconds, pass, title, sim:bool}
+  sess={items:opts.items.map(prep), i:0, ok:0, timed:!!opts.timed, left:opts.seconds||0,
+        pass:opts.pass||0, title:opts.title, sim:!!opts.sim, answered:false};
+  if(sess.timed){ clearInterval(tick); tick=setInterval(()=>{ sess.left--; if(sess.left<=0){clearInterval(tick); finish();} else renderTimer(); }, 1000); }
+  renderQuestion();
+}
+function choose(idx){
+  if(sess.answered) return;
+  sess.answered=true;
+  const it=sess.items[sess.i];
+  const correct = idx===it.a;
+  if(correct) sess.ok++;
+  record(it.ref, correct);
+  const opts=[...document.querySelectorAll('.opt')];
+  opts.forEach((o,k)=>{o.classList.add('dis'); if(k===it.a)o.classList.add('correct'); if(k===idx&&!correct)o.classList.add('bad');});
+  document.getElementById('expl').innerHTML =
+    (correct?'<b>✅ Correcto.</b> ':'<b>❌ Incorrecto.</b> Correcta: '+LETTERS[it.a]+') '+esc(it.o[it.a])+'<br>')+ '<span>'+esc(it.e)+'</span>';
+  document.getElementById('expl').style.display='block';
+  document.getElementById('next').style.display='block';
+  renderHeaderMini();
+}
+function next(){
+  sess.i++; sess.answered=false;
+  if(sess.i>=sess.items.length) return finish();
+  renderQuestion();
+}
+function finish(){
+  clearInterval(tick);
+  const n=sess.items.length, ok=sess.ok, pct=Math.round(ok/n*100);
+  if(sess.sim){ const passed=pct>= (sess.pass||75); S.sims.push({date:Date.now(),score:ok,total:n,passed}); checkBadges(); save(); }
+  renderResult(n,ok,pct);
+}
+
+/* ================= Render ================= */
+const app=()=>document.getElementById('app');
+function esc(s){return (s+'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));}
+let toastT=null;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+
+function home(){
+  clearInterval(tick); sess=null;
+  const li=levelInfo();
+  const acc = S.answered? Math.round(S.ok/S.answered*100):0;
+  const due = duePool().length;
+  const nEntran = Q.filter(q=>q.lv==='STS' && ENTRAN.includes(q.c)).length;
+  app().innerHTML=`
+    <div class="top">
+      <div>
+        <h1>🚁 Quiz Drones AESA</h1>
+        <div class="sub">Examen teórico STS · ${Q.length} preguntas</div>
+      </div>
+      <div class="pill">🔥 ${S.streak.count} d</div>
+    </div>
+
+    <div class="card">
+      <div class="row between">
+        <div><b>Nivel ${li.lvl}</b> · <span class="muted">${li.rank}</span></div>
+        <div class="muted" style="font-size:12px">${S.xp} XP</div>
+      </div>
+      <div class="bar lvlbar"><i style="width:${li.pct}%"></i></div>
+      <div class="grid2" style="margin-top:12px">
+        <div class="stat"><b>${acc}%</b><span>acierto global</span></div>
+        <div class="stat"><b>${S.answered}</b><span>respondidas</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button class="btn" onclick="modeSim()"><span class="ico">📝</span><span class="t">Simulacro de examen<small>30 preguntas · 30 min · aprobado 75% · 5 materias reales</small></span></button>
+      <div style="height:10px"></div>
+      <button class="btn sec" onclick="modeRapido()"><span class="ico">⚡</span><span class="t">Test rápido<small>10 preguntas de los niveles activos</small></span></button>
+      <div style="height:10px"></div>
+      <button class="btn sec" onclick="modeRepaso()"><span class="ico">🔁</span><span class="t">Repaso de fallos<small>${due? due+' pendientes hoy':'sin fallos pendientes'} · repaso espaciado</small></span></button>
+      <div style="height:10px"></div>
+      <button class="btn sec" onclick="modeMateria()"><span class="ico">📚</span><span class="t">Por materia<small>elige el tema a practicar</small></span></button>
+    </div>
+
+    <div class="card">
+      <div class="muted" style="font-size:12px;margin-bottom:8px">Niveles incluidos (test rápido y por materia)</div>
+      <div class="row" style="flex-wrap:wrap;gap:8px" id="lvchips"></div>
+    </div>
+
+    <div class="row" style="gap:10px;margin-top:12px">
+      <button class="btn sec" style="justify-content:center" onclick="stats()"><span class="ico">📊</span><span class="t" style="flex:none">Estadísticas</span></button>
+      <button class="btn sec" style="justify-content:center" onclick="badges()"><span class="ico">🎖️</span><span class="t" style="flex:none">Insignias</span></button>
+    </div>
+
+    <div id="installhint"></div>
+    <div class="foot">Nivel simulacro: ${nEntran} preguntas disponibles de las 5 materias que entran (con tu A2 se excluyen Meteorología, Prestaciones y Tierra).</div>
+  `;
+  renderChips();
+  renderInstall();
+}
+function renderChips(){
+  const box=document.getElementById('lvchips'); if(!box)return;
+  box.innerHTML='';
+  Object.keys(LEVEL_NAMES).forEach(lv=>{
+    const b=document.createElement('button');
+    b.className='chip'+(LEVELS.includes(lv)?' on':'');
+    b.textContent=LEVEL_NAMES[lv];
+    b.onclick=()=>{ if(LEVELS.includes(lv)){ if(LEVELS.length>1)LEVELS=LEVELS.filter(x=>x!==lv);} else LEVELS.push(lv); renderChips(); };
+    box.appendChild(b);
+  });
+}
+
+function renderQuestion(){
+  const it=sess.items[sess.i];
+  app().innerHTML=`
+    <div class="top">
+      <button class="back" onclick="home()">‹ Salir</button>
+      <div class="prog">${sess.title} · ${sess.i+1}/${sess.items.length}</div>
+      <div class="timer ${sess.timed&&sess.left<60?'warn':''}" id="timer">${sess.timed?fmt(sess.left):''}</div>
+    </div>
+    <div class="bar" style="margin-bottom:14px"><i style="width:${Math.round(sess.i/sess.items.length*100)}%"></i></div>
+    <div class="card pop">
+      <div class="pill" style="font-size:11px">${(CATS[it.c]||it.c)} · ${LEVEL_NAMES[it.lv]}</div>
+      <div class="q">${esc(it.q)}</div>
+      <div id="opts"></div>
+      <div class="expl" id="expl" style="display:none"></div>
+    </div>
+    <button class="btn" id="next" style="display:none;justify-content:center;margin-top:12px" onclick="next()">Siguiente ›</button>
+  `;
+  const o=document.getElementById('opts');
+  it.o.forEach((txt,k)=>{
+    const d=document.createElement('div'); d.className='opt';
+    d.innerHTML='<span class="k">'+LETTERS[k]+'</span><span>'+esc(txt)+'</span>';
+    d.onclick=()=>choose(k); o.appendChild(d);
+  });
+}
+function renderTimer(){ const t=document.getElementById('timer'); if(t){t.textContent=fmt(sess.left); t.classList.toggle('warn',sess.left<60);} }
+function renderHeaderMini(){}
+function fmt(s){const m=(s/60)|0,x=s%60;return m+':'+(x<10?'0':'')+x;}
+
+function renderResult(n,ok,pct){
+  const passed = sess.sim ? pct>=(sess.pass||75) : null;
+  const emo = pct>=90?'🏆':pct>=75?'✅':pct>=50?'💪':'📖';
+  let head = sess.sim ? (passed?'<span style="color:var(--ok)">APROBADO</span>':'<span style="color:var(--wrong)">No superado</span>') : 'Sesión completada';
+  app().innerHTML=`
+    <div class="card center pop">
+      <div style="font-size:52px">${emo}</div>
+      <div class="big">${ok}/${n}</div>
+      <div class="muted">${pct}% de aciertos</div>
+      <h1 style="margin-top:10px;font-size:18px">${head}</h1>
+      ${sess.sim?`<div class="muted" style="font-size:13px;margin-top:4px">Necesitas ≥75% (23/30) para aprobar</div>`:''}
+      <div style="height:16px"></div>
+      <button class="btn" style="justify-content:center" onclick="home()">Volver al inicio</button>
+      <div style="height:10px"></div>
+      <button class="btn sec" style="justify-content:center" onclick="(${sess.sim?'modeSim':sess.title.includes('Repaso')?'modeRepaso':'modeRapido'})()">Otra ronda</button>
+    </div>
+  `;
+}
+
+/* ====== Modos ====== */
+function modeSim(){
+  let p = Q.filter(q=>q.lv==='STS' && ENTRAN.includes(q.c));
+  if(p.length<30) p = Q.filter(q=>q.lv==='STS'); // respaldo
+  const items=shuffle(p).slice(0,30);
+  startSession({items, timed:true, seconds:30*60, pass:75, title:'Simulacro', sim:true});
+}
+function modeRapido(){
+  const p=pool(LEVELS); if(!p.length)return toast('No hay preguntas en esos niveles');
+  startSession({items:shuffle(p).slice(0,10), title:'Test rápido'});
+}
+function modeRepaso(){
+  const p=duePool();
+  if(!p.length){ toast('🎉 No tienes fallos pendientes hoy'); return; }
+  startSession({items:shuffle(p).slice(0,15), title:'Repaso de fallos'});
+}
+function modeMateria(){
+  clearInterval(tick);
+  const cats={}; pool(LEVELS).forEach(q=>{cats[q.c]=(cats[q.c]||0)+1;});
+  app().innerHTML=`<div class="top"><button class="back" onclick="home()">‹ Inicio</button><div class="prog">Por materia</div><div></div></div>
+    <div class="card"><div id="catlist"></div></div>`;
+  const box=document.getElementById('catlist');
+  Object.keys(cats).sort((a,b)=>cats[b]-cats[a]).forEach(c=>{
+    const cst=S.cat[c]; const acc=cst&&cst.total?Math.round(cst.ok/cst.total*100):null;
+    const b=document.createElement('button'); b.className='btn sec'; b.style.marginBottom='10px';
+    b.innerHTML='<span class="ico">📘</span><span class="t">'+(CATS[c]||c)+'<small>'+cats[c]+' preguntas'+(acc!=null?' · '+acc+'% acierto':'')+'</small></span>';
+    b.onclick=()=>{ const items=shuffle(pool(LEVELS).filter(q=>q.c===c)).slice(0,12); startSession({items, title:CATS[c]||c}); };
+    box.appendChild(b);
+  });
+}
+
+function stats(){
+  clearInterval(tick);
+  const acc=S.answered?Math.round(S.ok/S.answered*100):0;
+  const li=levelInfo();
+  let cats=Object.keys(S.cat).map(c=>({c,...S.cat[c]})).sort((a,b)=>(b.total)-(a.total));
+  let rows = cats.length? cats.map(x=>{
+    const p=Math.round(x.ok/x.total*100);
+    const col=p>=90?'var(--ok)':p>=70?'var(--accent)':'var(--wrong)';
+    return `<div style="margin-bottom:10px"><div class="row between" style="font-size:13px"><span>${CATS[x.c]||x.c}</span><span class="muted">${x.ok}/${x.total} · ${p}%</span></div><div class="bar" style="margin-top:5px"><i style="width:${p}%;background:${col}"></i></div></div>`;
+  }).join('') : '<div class="muted" style="font-size:13px">Aún no hay datos. Haz un test para empezar a medir.</div>';
+  const sims=(S.sims||[]).slice(-5).reverse().map(s=>{
+    const d=new Date(s.date); const dd=d.getDate()+'/'+(d.getMonth()+1);
+    return `<div class="row between" style="font-size:13px;margin-bottom:6px"><span>${dd}</span><span style="color:${s.passed?'var(--ok)':'var(--wrong)'}">${s.score}/${s.total} · ${Math.round(s.score/s.total*100)}% ${s.passed?'✅':''}</span></div>`;
+  }).join('')||'<div class="muted" style="font-size:13px">Sin simulacros todavía.</div>';
+  app().innerHTML=`<div class="top"><button class="back" onclick="home()">‹ Inicio</button><div class="prog">Estadísticas</div><div></div></div>
+    <div class="card">
+      <div class="grid2">
+        <div class="stat"><b>${acc}%</b><span>acierto global</span></div>
+        <div class="stat"><b>${S.answered}</b><span>respondidas</span></div>
+        <div class="stat"><b>Nv ${li.lvl}</b><span>${li.rank}</span></div>
+        <div class="stat"><b>🔥 ${S.streak.count}</b><span>racha (días)</span></div>
+      </div>
+    </div>
+    <div class="card"><h1 style="font-size:15px;margin-bottom:10px">Dominio por materia</h1>${rows}</div>
+    <div class="card"><h1 style="font-size:15px;margin-bottom:10px">Últimos simulacros</h1>${sims}</div>
+    <button class="btn sec" style="justify-content:center;margin-top:12px" onclick="resetAsk()">↺ Reiniciar progreso</button>`;
+}
+function resetAsk(){ if(confirm('¿Borrar todo el progreso (XP, estadísticas, insignias)? No afecta al banco de preguntas.')){ S={...DEF}; save(); toast('Progreso reiniciado'); home(); } }
+
+function badges(){
+  clearInterval(tick);
+  const list=BADGES.map(b=>{
+    const got=S.badges.includes(b.id);
+    return `<div class="badge ${got?'':'locked'}"><span class="e">${b.e}</span><div><div class="n">${b.n}</div><div class="d">${b.d}</div></div></div>`;
+  }).join('');
+  app().innerHTML=`<div class="top"><button class="back" onclick="home()">‹ Inicio</button><div class="prog">Insignias · ${S.badges.length}/${BADGES.length}</div><div></div></div>
+    <div class="card">${list}</div>`;
+}
+
+/* ====== Instalación PWA ====== */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); deferredPrompt=e; renderInstall(); });
+function renderInstall(){
+  const box=document.getElementById('installhint'); if(!box)return;
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+  if(standalone){ box.innerHTML=''; return; }
+  const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if(deferredPrompt){
+    box.innerHTML='<button class="btn" style="justify-content:center" onclick="doInstall()"><span class="ico">📲</span><span class="t" style="flex:none">Instalar la app</span></button>';
+  } else if(iOS){
+    box.innerHTML='<div class="installhint">📲 <b>Instalar en iPhone:</b> pulsa el botón <b>Compartir</b> (▵) de Safari y elige <b>“Añadir a pantalla de inicio”</b>. Se abrirá como app y funcionará sin conexión.</div>';
+  } else box.innerHTML='';
+}
+function doInstall(){ if(!deferredPrompt)return; deferredPrompt.prompt(); deferredPrompt=null; }
+
+/* ====== Service worker ====== */
+if('serviceWorker' in navigator){ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+
+home();
+</script>
+</body>
+</html>

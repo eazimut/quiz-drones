@@ -1,0 +1,17 @@
+{
+  "name": "Quiz Drones AESA — Eloy",
+  "short_name": "Quiz Drones",
+  "description": "Preparación del examen teórico STS de AESA: test por materia, simulacro real, repaso espaciado y estadísticas.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1219",
+  "theme_color": "#0b1219",
+  "lang": "es",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
