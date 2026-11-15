@@ -1,6 +1,6 @@
 // Service Worker — Quiz Drones AESA
 // Cache-first para funcionar offline. Sube el número de versión al cambiar archivos.
-const VERSION = 'quiz-drones-v1';
+const VERSION = 'quiz-drones-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -9,7 +9,10 @@ const ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/maskable-512.png',
-  './icons/apple-touch-icon.png'
+  './icons/apple-touch-icon.png',
+  './fonts/atkinson-400.woff2',
+  './fonts/atkinson-700.woff2',
+  './fonts/barlow-condensed-600.woff2'
 ];
 
 self.addEventListener('install', e => {
